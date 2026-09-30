@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Танцевальный конкурс — заявка</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+:root{--deep:#1d0647;--violet:#5b21d6;--lilac:#b892ff;--sun:#ffd60a;--amber:#ffa800;--ink:#22104a}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;font-family:'Rubik',system-ui,sans-serif;color:#fff;
+ background:radial-gradient(60rem 40rem at 90% -10%,rgba(255,214,10,.35),transparent 60%),
+ linear-gradient(160deg,var(--deep) 0%,var(--violet) 70%,#8a3ffc 100%);background-attachment:fixed}
+main{max-width:640px;margin:0 auto;padding:56px 20px 64px}
+h1{font-weight:900;font-size:clamp(2.6rem,10vw,4.6rem);line-height:.98;margin:0 0 16px;letter-spacing:-.02em;
+ background:linear-gradient(100deg,var(--sun),var(--amber) 60%,#ff7a59);-webkit-background-clip:text;background-clip:text;color:transparent}
+.lead{font-size:1.1rem;line-height:1.5;margin:0 0 32px;color:#e9dcff;max-width:34rem}
+form{background:#fff;color:var(--ink);border-radius:28px;padding:28px;box-shadow:0 30px 60px -20px rgba(10,0,40,.6)}
+.field{margin-bottom:22px}
+.field>span{display:block;font-weight:500;margin-bottom:8px}
+.hint{font-weight:400;color:#6d5f92;font-size:.86rem}
+input[type=text]{width:100%;font:inherit;padding:14px 16px;border:2px solid #e2d8f7;border-radius:14px;color:var(--ink)}
+input[type=text]:focus{outline:none;border-color:var(--violet)}
+.drop{position:relative;display:block;border:2px dashed var(--lilac);border-radius:18px;padding:22px 18px;background:#f6f1ff;cursor:pointer;text-align:center;transition:background .2s,border-color .2s}
+.drop:hover,.drop:focus-within,.drop.over{background:#efe6ff;border-color:var(--violet)}
+.drop input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.drop b{display:block;font-weight:700}
+.drop small{color:#6d5f92}
+.drop.ok{border-style:solid;border-color:var(--violet);background:#efe6ff}
+.bar{height:8px;border-radius:8px;background:#e2d8f7;margin-top:12px;overflow:hidden;display:none}
+.bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--violet),var(--sun));transition:width .15s}
+.check{display:flex;gap:10px;align-items:flex-start;font-size:.9rem;color:#4a3d70;margin-bottom:22px}
+.check input{margin-top:3px;accent-color:var(--violet)}
+button{width:100%;font:inherit;font-weight:700;font-size:1.1rem;padding:16px;border:0;border-radius:16px;cursor:pointer;color:var(--deep);
+ background:linear-gradient(100deg,var(--sun),var(--amber));box-shadow:0 10px 24px -8px rgba(255,168,0,.8)}
+button:hover{filter:brightness(1.05)}
+button:focus-visible,.drop:focus-within{outline:3px solid var(--violet);outline-offset:2px}
+button:disabled{opacity:.6;cursor:wait}
+#msg{margin:16px 0 0;font-weight:500;min-height:1.4em}
+#msg.err{color:#c1121f}#msg.done{color:#1b7a3a}
+.thanks{display:none;text-align:center;padding:24px 0}
+.thanks h2{font-size:1.8rem;margin:0 0 8px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<main>
+ <h1>Танцевальный конкурс</h1>
+ <p class="lead">Заполните заявку и загрузите видео номера и музыку к нему. Мы посмотрим все работы и свяжемся со студиями.</p>
+
+ <form id="f" novalidate>
+  <label class="field"><span>Название вашей студии</span>
+   <input type="text" id="studio" maxlength="80" required autocomplete="organization"></label>
+
+  <div class="field"><span>Ваш видео футаж <span class="hint">до 1 ГБ</span></span>
+   <label class="drop" id="dv"><input type="file" id="video" accept="video/*"><b>Выберите видеофайл</b><small>MP4, MOV или другой формат видео</small></label>
+   <div class="bar" id="bv"><i></i></div></div>
+
+  <div class="field"><span>Ваше аудио <span class="hint">до 100 МБ</span></span>
+   <label class="drop" id="da"><input type="file" id="audio" accept="audio/*"><b>Выберите аудиофайл</b><small>MP3, WAV, M4A</small></label>
+   <div class="bar" id="ba"><i></i></div></div>
+
+  <label class="check"><input type="checkbox" id="ok"><span>Соглашаюсь на обработку данных и использование видео в рамках конкурса</span></label>
+
+  <button type="submit" id="go">Отправить заявку</button>
+  <p id="msg" role="status"></p>
+ </form>
+
+ <div class="thanks" id="thanks"><h2>Заявка отправлена</h2><p class="lead" style="margin:0 auto">Спасибо! Мы получили ваше видео и аудио.</p></div>
+</main>
+
+<script>
+// 1. Вставьте сюда адрес веб-приложения Apps Script (заканчивается на /exec)
+const ENDPOINT = 'https://script.google.com/macros/s/AKfycbyVnz4mT6ixCg-Zd4BjIk8k30CiIZRBea3qbFEzkMNyZcDs-t9t6ufz7UHba-JoZkVU/exec';
+const MAX_VIDEO = 1024 * 1024 * 1024;   // 1 ГБ
+const MAX_AUDIO = 100 * 1024 * 1024;    // 100 МБ
+
+const $ = id => document.getElementById(id);
+const mb = n => (n / 1048576).toFixed(n > 1e8 ? 0 : 1) + ' МБ';
+
+function bindDrop(inputId, boxId) {
+  const inp = $(inputId), box = $(boxId);
+  inp.addEventListener('change', () => {
+    const f = inp.files[0];
+    box.classList.toggle('ok', !!f);
+    box.querySelector('b').textContent = f ? f.name : (inputId === 'video' ? 'Выберите видеофайл' : 'Выберите аудиофайл');
+    if (f) box.querySelector('small').textContent = mb(f.size);
+  });
+  ['dragenter', 'dragover'].forEach(e => box.addEventListener(e, () => box.classList.add('over')));
+  ['dragleave', 'drop'].forEach(e => box.addEventListener(e, () => box.classList.remove('over')));
+}
+bindDrop('video', 'dv'); bindDrop('audio', 'da');
+
+function msg(t, cls) { const m = $('msg'); m.textContent = t; m.className = cls || ''; }
+
+async function api(data) {
+  // text/plain — чтобы браузер не делал preflight-запрос (Apps Script его не поддерживает)
+  const r = await fetch(ENDPOINT, { method: 'POST', body: JSON.stringify(data) });
+  const j = await r.json();
+  if (j.error) throw new Error(j.error);
+  return j;
+}
+
+function upload(file, url, barId) {
+  const bar = $(barId), fill = bar.firstElementChild;
+  bar.style.display = 'block';
+  return new Promise((resolve, reject) => {
+    const x = new XMLHttpRequest();
+    x.open('PUT', url);
+    x.upload.onprogress = e => { if (e.lengthComputable) fill.style.width = (e.loaded / e.total * 100) + '%'; };
+    x.onload = () => {
+      if (x.status === 200 || x.status === 201) { fill.style.width = '100%'; resolve(JSON.parse(x.responseText).id); }
+      else reject(new Error('Ошибка загрузки файла: ' + x.status));
+    };
+    x.onerror = () => reject(new Error('Сеть недоступна. Проверьте соединение и попробуйте ещё раз.'));
+    x.send(file);
+  });
+}
+
+$('f').addEventListener('submit', async e => {
+  e.preventDefault();
+  const studio = $('studio').value.trim(), v = $('video').files[0], a = $('audio').files[0];
+  if (!studio) return msg('Укажите название студии.', 'err');
+  if (!v) return msg('Выберите видеофайл.', 'err');
+  if (!v.type.startsWith('video/')) return msg('Видео: выберите файл видеоформата.', 'err');
+  if (v.size > MAX_VIDEO) return msg('Видео весит ' + mb(v.size) + '. Максимум — 1 ГБ.', 'err');
+  if (!a) return msg('Выберите аудиофайл.', 'err');
+  if (!a.type.startsWith('audio/')) return msg('Аудио: выберите файл аудиоформата.', 'err');
+  if (a.size > MAX_AUDIO) return msg('Аудио весит ' + mb(a.size) + '. Максимум — 100 МБ.', 'err');
+  if (!$('ok').checked) return msg('Подтвердите согласие на обработку данных.', 'err');
+
+  $('go').disabled = true;
+  try {
+    msg('Готовим загрузку…');
+    const s = await api({
+      action: 'start', studio, origin: location.origin,
+      video: { name: v.name, type: v.type, size: v.size },
+      audio: { name: a.name, type: a.type, size: a.size }
+    });
+    msg('Загружаем файлы. Не закрывайте страницу.');
+    const audioId = await upload(a, s.audioUrl, 'ba');
+    const videoId = await upload(v, s.videoUrl, 'bv');
+    await api({ action: 'finish', studio, videoId, audioId, videoName: v.name, audioName: a.name });
+    $('f').style.display = 'none'; $('thanks').style.display = 'block';
+  } catch (err) {
+    msg(err.message, 'err'); $('go').disabled = false;
+  }
+});
+</script>
+</body>
+</html>
